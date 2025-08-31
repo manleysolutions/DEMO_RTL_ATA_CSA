@@ -12,21 +12,20 @@ const PORT = process.env.PORT || 4000;
 const frontendPath = path.join(__dirname, "public");
 app.use(express.static(frontendPath));
 
-// --- API health check ---
+// --- API routes ---
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// --- API sites endpoint ---
 app.get("/api/sites", (req, res) => {
   res.json([
     { id: 1, location: "Headquarters", status: "online" },
     { id: 2, location: "Sorting Center", status: "offline" },
-    { id: 3, location: "Branch Office", status: "no_csa" },
+    { id: 3, location: "Branch Office", status: "no_csa" }
   ]);
 });
 
-// --- Fallback to React app ---
+// --- Fallback to frontend ---
 app.get("*", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
