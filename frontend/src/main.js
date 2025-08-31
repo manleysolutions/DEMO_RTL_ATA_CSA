@@ -147,6 +147,25 @@ function applyFilters() {
   renderSites(filtered);
 }
 
+// --- Hook summary cards for quick filters ---
+document.getElementById("filter-total").addEventListener("click", () => {
+  document.getElementById("statusFilter").value = "";
+  applyFilters();
+});
+document.getElementById("filter-online").addEventListener("click", () => {
+  document.getElementById("statusFilter").value = "online";
+  applyFilters();
+});
+document.getElementById("filter-offline").addEventListener("click", () => {
+  document.getElementById("statusFilter").value = "offline";
+  applyFilters();
+});
+document.getElementById("filter-pending").addEventListener("click", () => {
+  document.getElementById("statusFilter").value = "pending";
+  applyFilters();
+});
+
+// Filters & live updates
 document.getElementById("statusFilter").addEventListener("change", applyFilters);
 document.getElementById("deviceFilter").addEventListener("change", applyFilters);
 document.getElementById("searchInput").addEventListener("input", applyFilters);
