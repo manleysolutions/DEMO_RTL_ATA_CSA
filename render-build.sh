@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-set -e
+# --- render-build.sh ---
+# Build pipeline for Render.com deployment
+
+set -o errexit
 
 echo "📦 Installing backend deps..."
 npm install
@@ -11,7 +14,8 @@ npm run build
 cd ..
 
 echo "📂 Moving frontend dist into backend public..."
-mkdir -p public
-cp -r frontend/dist/* public/
+rm -rf ./public
+mkdir -p ./public
+cp -r ./frontend/dist/* ./public/
 
 echo "✅ Build complete"
