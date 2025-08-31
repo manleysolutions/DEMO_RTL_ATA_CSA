@@ -1,7 +1,17 @@
+/** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}"
+  ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        uspsBlue: "#333399",
+        uspsRed: "#e61e25",
+        uspsGray: "#f5f5f5"
+      }
+    },
   },
   plugins: [],
-};
+}
