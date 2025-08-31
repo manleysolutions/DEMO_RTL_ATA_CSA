@@ -13,7 +13,7 @@ npm install
 npm run build
 cd ..
 
-echo "📂 Moving frontend dist into backend public..."
+echo "📂 Moving frontend dist into /public..."
 rm -rf ./public
 mkdir -p ./public
 cp -r ./frontend/dist/* ./public/
