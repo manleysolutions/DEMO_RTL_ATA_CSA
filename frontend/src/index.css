@@ -2,17 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* USPS custom colors */
-@layer base {
-  :root {
-    --usps-blue: #004B87;
-    --usps-red: #E71921;
-    --usps-gray: #F3F4F6;
-  }
+body {
+  @apply bg-uspsGray text-gray-800;
 }
 
-.bg-uspsBlue { background-color: var(--usps-blue); }
-.text-uspsBlue { color: var(--usps-blue); }
-.bg-uspsRed { background-color: var(--usps-red); }
-.text-uspsRed { color: var(--usps-red); }
-.bg-uspsGray { background-color: var(--usps-gray); }
+h1 {
+  @apply text-3xl font-bold text-uspsBlue mb-4;
+}
