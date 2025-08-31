@@ -1,7 +1,11 @@
+// --- server.mjs ---
+// USPS True911+ Dashboard Backend + Frontend Server
+
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 
+// Resolve __dirname since ES modules don’t have it natively
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -9,7 +13,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // --- Serve frontend from Vite build ---
-const frontendPath = path.join(__dirname, "frontend", "dist");
+const frontendPath = path.resolve(__dirname, "frontend", "dist");
 app.use(express.static(frontendPath));
 
 // --- API routes ---
@@ -27,7 +31,7 @@ app.get("/api/sites", (req, res) => {
 
 // --- Fallback: let frontend handle routes ---
 app.get("*", (req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
+  res.sendFile(path.resolve(frontendPath, "index.html"));
 });
 
 // --- Start server (only once) ---
