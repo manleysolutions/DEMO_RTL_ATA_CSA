@@ -2,18 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-/* USPS Custom styles */
-body {
-  @apply bg-uspsGray text-gray-800 font-sans;
+/* USPS custom colors */
+@layer base {
+  :root {
+    --usps-blue: #004B87;
+    --usps-red: #E71921;
+    --usps-gray: #F3F4F6;
+  }
 }
 
-h1 {
-  @apply text-3xl font-bold text-uspsBlue mb-4;
-}
-
-button {
-  @apply px-3 py-1 rounded-md font-medium transition-colors duration-200;
-}
-button:hover {
-  @apply bg-uspsBlue text-white;
-}
+.bg-uspsBlue { background-color: var(--usps-blue); }
+.text-uspsBlue { color: var(--usps-blue); }
+.bg-uspsRed { background-color: var(--usps-red); }
+.text-uspsRed { color: var(--usps-red); }
+.bg-uspsGray { background-color: var(--usps-gray); }
