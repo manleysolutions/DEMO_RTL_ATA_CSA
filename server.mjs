@@ -8,24 +8,25 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// --- Serve frontend from /public ---
+// --- Serve frontend ---
 const frontendPath = path.join(__dirname, "public");
 app.use(express.static(frontendPath));
 
-// --- API routes ---
+// --- API health check ---
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+// --- API sites endpoint ---
 app.get("/api/sites", (req, res) => {
   res.json([
     { id: 1, location: "Headquarters", status: "online" },
     { id: 2, location: "Sorting Center", status: "offline" },
-    { id: 3, location: "Branch Office", status: "no_csa" }
+    { id: 3, location: "Branch Office", status: "no_csa" },
   ]);
 });
 
-// --- Fallback: send frontend ---
+// --- Fallback to React app ---
 app.get("*", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
