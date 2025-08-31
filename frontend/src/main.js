@@ -1,50 +1,49 @@
-import './index.css';
+import "./index.css";
 
-document.querySelector('#app').innerHTML = `
-  <div class="max-w-6xl mx-auto p-6">
-    <header class="flex items-center justify-between mb-6">
-      <h1 class="text-3xl font-bold text-uspsBlue">📡 USPS True911+ Deployment Dashboard</h1>
-      <span class="text-sm text-gray-500">Updated: ${new Date().toLocaleString()}</span>
-    </header>
-    <div class="bg-white shadow rounded-lg p-4">
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="bg-gray-200">
-            <th class="p-2">ID</th>
-            <th class="p-2">Location</th>
-            <th class="p-2">Status</th>
-            <th class="p-2">Device</th>
-            <th class="p-2">Last Sync</th>
-            <th class="p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="sitesTable"></tbody>
-      </table>
-    </div>
-  </div>
-`;
+async function loadSites() {
+  const res = await fetch("/api/sites");
+  const sites = await res.json();
 
-// Fetch sites from API
-fetch("/api/sites")
-  .then(res => res.json())
-  .then(data => {
-    const tbody = document.getElementById("sitesTable");
-    tbody.innerHTML = data.map(site => `
-      <tr class="border-b">
-        <td class="p-2">${site.id}</td>
-        <td class="p-2">${site.location}</td>
-        <td class="p-2">
-          <span class="${site.status === 'online' ? 'text-green-600 font-bold' :
-                         site.status === 'offline' ? 'text-red-600 font-bold' :
-                         'text-yellow-600'}">${site.status}</span>
-        </td>
-        <td class="p-2">CSA v1.1</td>
-        <td class="p-2">${new Date().toLocaleTimeString()}</td>
-        <td class="p-2 space-x-2">
-          <button class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded">Ping</button>
-          <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded">Reboot</button>
-          <button class="bg-gray-700 hover:bg-gray-800 text-white px-2 py-1 rounded">Logs</button>
-        </td>
-      </tr>
-    `).join("");
+  const tableBody = document.getElementById("sites-table-body");
+  tableBody.innerHTML = "";
+
+  sites.forEach(site => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td class="px-4 py-2">${site.id}</td>
+      <td class="px-4 py-2">${site.location}</td>
+      <td class="px-4 py-2 font-bold ${site.status === "online" ? "text-green-600" : site.status === "offline" ? "text-red-600" : "text-yellow-600"}">${site.status}</td>
+      <td class="px-4 py-2">${site.device}</td>
+      <td class="px-4 py-2">${site.lastSync}</td>
+      <td class="px-4 py-2 flex gap-2">
+        <button class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded" onclick="pingSite(${site.id})">Ping</button>
+        <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded" onclick="rebootSite(${site.id})">Reboot</button>
+        <button class="bg-gray-700 hover:bg-gray-800 text-white px-2 py-1 rounded" onclick="fetchLogs(${site.id})">Logs</button>
+      </td>
+    `;
+    tableBody.appendChild(row);
   });
+}
+
+// --- API Actions ---
+window.pingSite = async (id) => {
+  const res = await fetch(`/api/ping/${id}`, { method: "POST" });
+  const data = await res.json();
+  alert(data.msg);
+  loadSites();
+};
+
+window.rebootSite = async (id) => {
+  const res = await fetch(`/api/reboot/${id}`, { method: "POST" });
+  const data = await res.json();
+  alert(data.msg);
+};
+
+window.fetchLogs = async (id) => {
+  const res = await fetch(`/api/logs/${id}`);
+  const data = await res.json();
+  alert(`Logs for site ${id}:\n\n` + data.logs.join("\n"));
+};
+
+// --- Init ---
+loadSites();

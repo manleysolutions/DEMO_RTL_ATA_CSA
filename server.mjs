@@ -8,50 +8,62 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// --- Serve frontend build ---
+// --- Serve frontend ---
 const frontendPath = path.join(__dirname, "frontend", "dist");
 app.use(express.static(frontendPath));
 
-// --- API routes ---
+// --- Mock site data ---
+let sites = [
+  { id: 1, location: "Headquarters", status: "online", device: "CSA v1.1", lastSync: new Date().toISOString() },
+  { id: 2, location: "Sorting Center", status: "offline", device: "ATA191", lastSync: new Date().toISOString() },
+  { id: 3, location: "Branch Office", status: "no_csa", device: "—", lastSync: "—" },
+  { id: 4, location: "Regional Hub", status: "online", device: "CSA v1.1", lastSync: new Date().toISOString() }
+];
+
+// --- API health ---
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// Demo site data with extra fields
+// --- API: list sites ---
 app.get("/api/sites", (req, res) => {
-  res.json([
-    {
-      id: 1,
-      location: "Headquarters",
-      status: "online",
-      deviceType: "CSA v1.1",
-      lastSync: "2025-08-31 15:45 ET"
-    },
-    {
-      id: 2,
-      location: "Sorting Center",
-      status: "offline",
-      deviceType: "ATA191",
-      lastSync: "2025-08-31 12:20 ET"
-    },
-    {
-      id: 3,
-      location: "Branch Office",
-      status: "no_csa",
-      deviceType: "—",
-      lastSync: "—"
-    },
-    {
-      id: 4,
-      location: "Regional Hub",
-      status: "online",
-      deviceType: "CSA v1.1",
-      lastSync: "2025-08-31 16:05 ET"
-    }
-  ]);
+  res.json(sites);
 });
 
-// --- Fallback to frontend ---
+// --- API: ping site ---
+app.post("/api/ping/:id", (req, res) => {
+  const site = sites.find(s => s.id === parseInt(req.params.id));
+  if (!site) return res.status(404).json({ ok: false, msg: "Site not found" });
+
+  // simulate ping
+  site.lastSync = new Date().toISOString();
+  res.json({ ok: true, msg: `Ping to ${site.location} successful`, site });
+});
+
+// --- API: reboot site ---
+app.post("/api/reboot/:id", (req, res) => {
+  const site = sites.find(s => s.id === parseInt(req.params.id));
+  if (!site) return res.status(404).json({ ok: false, msg: "Site not found" });
+
+  res.json({ ok: true, msg: `Reboot triggered for ${site.location}` });
+});
+
+// --- API: fetch logs ---
+app.get("/api/logs/:id", (req, res) => {
+  const site = sites.find(s => s.id === parseInt(req.params.id));
+  if (!site) return res.status(404).json({ ok: false, msg: "Site not found" });
+
+  res.json({
+    ok: true,
+    logs: [
+      `[${new Date().toISOString()}] Device checked in`,
+      `[${new Date().toISOString()}] Status: ${site.status}`,
+      `[${new Date().toISOString()}] Action log complete`
+    ]
+  });
+});
+
+// --- Fallback: frontend handles routing ---
 app.get("*", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });

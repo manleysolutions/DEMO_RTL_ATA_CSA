@@ -1,12 +1,41 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>USPS Dashboard</title>
-  </head>
-  <body class="bg-gray-50">
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <title>USPS True911+ Deployment Dashboard</title>
+  <script type="module" src="/src/main.js"></script>
+  <link href="/src/index.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <div class="p-6">
+    <header class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-blue-900">📡 USPS True911+ Deployment Dashboard</h1>
+      <span id="lastUpdated" class="text-gray-500 text-sm">Updated: —</span>
+    </header>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="bg-green-100 border-l-4 border-green-600 p-4">✅ Online</div>
+      <div class="bg-red-100 border-l-4 border-red-600 p-4">❌ Offline</div>
+      <div class="bg-yellow-100 border-l-4 border-yellow-600 p-4">⚠️ Pending</div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white shadow rounded-lg">
+      <table class="w-full border-collapse">
+        <thead class="bg-blue-50 text-blue-900">
+          <tr>
+            <th class="px-4 py-2 text-left">ID</th>
+            <th class="px-4 py-2 text-left">Location</th>
+            <th class="px-4 py-2 text-left">Status</th>
+            <th class="px-4 py-2 text-left">Device</th>
+            <th class="px-4 py-2 text-left">Last Sync</th>
+            <th class="px-4 py-2 text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="sites-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</body>
 </html>
