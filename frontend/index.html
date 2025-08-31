@@ -1,105 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>USPS True911+ Dashboard</title>
+    <title>USPS Dashboard</title>
   </head>
-  <body class="bg-uspsGray min-h-screen flex flex-col items-center p-6">
-    <!-- Header -->
-    <header class="w-full max-w-6xl mb-6">
-      <div class="flex items-center space-x-3">
-        <img src="/usps_logo.png" alt="USPS Logo" class="h-10" />
-        <h1 class="text-3xl font-bold text-uspsBlue">
-          USPS True911+ Deployment Dashboard
-        </h1>
-      </div>
-      <div class="mt-2 text-sm text-gray-600">
-        Last Updated: <span id="lastUpdated">--</span>
-      </div>
-    </header>
-
-    <!-- Status summary -->
-    <section class="w-full max-w-6xl mb-6 grid grid-cols-3 gap-4">
-      <div class="bg-white shadow rounded-lg p-4 text-center">
-        <div class="text-green-600 font-bold text-lg">Online</div>
-        <div id="onlineCount" class="text-2xl font-semibold">0</div>
-      </div>
-      <div class="bg-white shadow rounded-lg p-4 text-center">
-        <div class="text-red-600 font-bold text-lg">Offline</div>
-        <div id="offlineCount" class="text-2xl font-semibold">0</div>
-      </div>
-      <div class="bg-white shadow rounded-lg p-4 text-center">
-        <div class="text-yellow-600 font-bold text-lg">Pending</div>
-        <div id="pendingCount" class="text-2xl font-semibold">0</div>
-      </div>
-    </section>
-
-    <!-- Table -->
-    <main class="w-full max-w-6xl bg-white shadow rounded-lg p-4">
-      <table class="min-w-full table-auto border-collapse">
-        <thead>
-          <tr class="bg-uspsBlue text-white text-left">
-            <th class="p-3">ID</th>
-            <th class="p-3">Location</th>
-            <th class="p-3">Status</th>
-            <th class="p-3">Device</th>
-            <th class="p-3">Last Sync</th>
-            <th class="p-3">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="siteTable" class="divide-y divide-gray-200">
-          <!-- JS will fill this -->
-        </tbody>
-      </table>
-    </main>
-
-    <script>
-      async function loadSites() {
-        const res = await fetch("/api/sites");
-        const sites = await res.json();
-
-        const tbody = document.getElementById("siteTable");
-        tbody.innerHTML = "";
-
-        let online = 0, offline = 0, pending = 0;
-
-        sites.forEach((site) => {
-          if (site.status === "online") online++;
-          else if (site.status === "offline") offline++;
-          else pending++;
-
-          const statusClass =
-            site.status === "online"
-              ? "text-green-600 font-semibold"
-              : site.status === "offline"
-              ? "text-red-600 font-semibold"
-              : "text-yellow-600 font-semibold";
-
-          tbody.innerHTML += `
-            <tr>
-              <td class="p-3">${site.id}</td>
-              <td class="p-3">${site.location}</td>
-              <td class="p-3"><span class="${statusClass}">${site.status}</span></td>
-              <td class="p-3">${site.device || "—"}</td>
-              <td class="p-3">${site.lastSync || "--"}</td>
-              <td class="p-3 space-x-2">
-                <button class="px-3 py-1 bg-uspsBlue text-white rounded hover:bg-blue-800">Ping</button>
-                <button class="px-3 py-1 bg-uspsRed text-white rounded hover:bg-red-800">Reboot</button>
-                <button class="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-700">Logs</button>
-              </td>
-            </tr>
-          `;
-        });
-
-        document.getElementById("onlineCount").textContent = online;
-        document.getElementById("offlineCount").textContent = offline;
-        document.getElementById("pendingCount").textContent = pending;
-        document.getElementById("lastUpdated").textContent = new Date().toLocaleString();
-      }
-
-      loadSites();
-      setInterval(loadSites, 10000); // auto-refresh
-    </script>
+  <body class="bg-gray-50">
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>
