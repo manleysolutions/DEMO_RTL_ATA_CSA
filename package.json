@@ -1,13 +1,12 @@
 {
-  "name": "usps_dashboard_backend",
+  "name": "usps_dashboard",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "./render-build.sh",
-    "start": "node server.mjs"
+    "start": "node server.mjs",
+    "build": "cd frontend && npm install && npm run build"
   },
   "dependencies": {
-    "express": "^4.19.2",
-    "path": "^0.12.7"
+    "express": "^4.19.2"
   }
 }
