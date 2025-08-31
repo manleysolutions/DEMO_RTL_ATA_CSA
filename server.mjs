@@ -1,43 +1,53 @@
 import express from "express";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Healthcheck
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", service: "USPS Dashboard API" });
+// Fix __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Middleware
+app.use(express.json());
+
+// Root route
+app.get("/", (req, res) => {
+  res.send("✅ CSA USPS Dashboard API is online");
 });
 
-// Sites endpoint — reads local status JSONs
+// Health check
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", service: "CSA USPS Dashboard", timestamp: new Date() });
+});
+
+// Sites endpoint (reads from ./data folder)
 app.get("/api/sites", (req, res) => {
   try {
-    const dataDir = path.join(process.cwd(), "data");
+    const dataDir = path.join(__dirname, "data");
     let sites = [];
 
     if (fs.existsSync(dataDir)) {
-      const files = fs.readdirSync(dataDir);
-      files.forEach((f) => {
-        if (f.endsWith(".json")) {
-          const content = fs.readFileSync(path.join(dataDir, f), "utf8");
-          sites.push(JSON.parse(content));
+      const siteDirs = fs.readdirSync(dataDir);
+      siteDirs.forEach((site) => {
+        const statusFile = path.join(dataDir, site, "status.json");
+        if (fs.existsSync(statusFile)) {
+          const status = JSON.parse(fs.readFileSync(statusFile, "utf8"));
+          sites.push({ id: site, ...status });
         }
       });
     }
 
     res.json({ sites });
   } catch (err) {
-    console.error("Error reading site data:", err);
-    res.status(500).json({ error: "Failed to load site data" });
+    console.error("Error loading sites:", err);
+    res.status(500).json({ error: "Failed to load sites" });
   }
 });
 
-// Default homepage
-app.get("/", (req, res) => {
-  res.send("✅ USPS Dashboard is running. Check /api/health or /api/sites");
-});
-
+// Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Dashboard API running on port ${PORT}`);
+  console.log(`CSA USPS Dashboard API listening on port ${PORT}`);
 });
