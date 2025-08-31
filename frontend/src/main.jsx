@@ -19,12 +19,22 @@ function StatusBadge({ status }) {
 
 function Dashboard() {
   const [sites, setSites] = useState([]);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
-  useEffect(() => {
+  const fetchSites = () => {
     fetch("/api/sites")
       .then((res) => res.json())
-      .then((data) => setSites(data))
+      .then((data) => {
+        setSites(data);
+        setLastUpdated(new Date().toLocaleTimeString());
+      })
       .catch((err) => console.error("Error fetching sites:", err));
+  };
+
+  useEffect(() => {
+    fetchSites();
+    const interval = setInterval(fetchSites, 10000); // refresh every 10s
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -40,7 +50,13 @@ function Dashboard() {
         </h1>
       </header>
 
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">Sites</h2>
+      <div className="mb-4 text-gray-600 text-sm">
+        {lastUpdated ? (
+          <span>Last Updated: {lastUpdated}</span>
+        ) : (
+          <span>Loading data...</span>
+        )}
+      </div>
 
       <div className="overflow-x-auto shadow-lg rounded-lg bg-white">
         <table className="w-full border-collapse">
@@ -55,7 +71,9 @@ function Dashboard() {
             {sites.map((site, idx) => (
               <tr
                 key={site.id}
-                className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}
+                className={`hover:bg-blue-50 transition ${
+                  idx % 2 === 0 ? "bg-gray-50" : "bg-white"
+                }`}
               >
                 <td className="p-3">{site.id}</td>
                 <td className="p-3">{site.location}</td>
