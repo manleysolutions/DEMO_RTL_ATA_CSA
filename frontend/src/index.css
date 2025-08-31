@@ -2,12 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-/* USPS Branding */
+/* USPS Custom styles */
 body {
-  font-family: system-ui, sans-serif;
+  @apply bg-uspsGray text-gray-800 font-sans;
 }
 
-h1, h2, h3 {
-  font-weight: bold;
-  color: #1e3a8a; /* USPS blue */
+h1 {
+  @apply text-3xl font-bold text-uspsBlue mb-4;
+}
+
+button {
+  @apply px-3 py-1 rounded-md font-medium transition-colors duration-200;
+}
+button:hover {
+  @apply bg-uspsBlue text-white;
 }

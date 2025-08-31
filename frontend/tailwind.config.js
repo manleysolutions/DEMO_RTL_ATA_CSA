@@ -2,16 +2,16 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}"
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       colors: {
         uspsBlue: "#333399",
-        uspsRed: "#e61e25",
-        uspsGray: "#f5f5f5"
-      }
+        uspsRed: "#CC0000",
+        uspsGray: "#f5f5f5",
+      },
     },
   },
   plugins: [],
-}
+};
