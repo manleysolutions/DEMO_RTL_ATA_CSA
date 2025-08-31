@@ -1,33 +1,43 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import fs from "fs";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// --- API ROUTES ---
+// __dirname replacement for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Middleware
+app.use(express.json());
+
+// --- API ROUTES --- //
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", time: new Date().toISOString() });
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 app.get("/api/sites", (req, res) => {
-  res.json([
-    { id: "CSA09", location: "Jacksonville, FL", status: "online" },
-    { id: "CSA10", location: "Orlando, FL", status: "offline" },
-    { id: "HQ", location: "Ponte Vedra Beach, FL", status: "no CSA (monitor-only)" }
-  ]);
+  const dataPath = path.join(__dirname, "data", "sites.json");
+  if (fs.existsSync(dataPath)) {
+    const sites = JSON.parse(fs.readFileSync(dataPath, "utf8"));
+    res.json(sites);
+  } else {
+    res.json({ sites: [] });
+  }
 });
 
-// --- FRONTEND ---
-app.use(express.static(path.join(__dirname, "frontend", "dist")));
+// --- SERVE FRONTEND BUILD --- //
+const frontendPath = path.join(__dirname, "frontend", "dist");
+app.use(express.static(frontendPath));
 
+// Fallback: always serve index.html for React Router
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
+  res.sendFile(path.join(frontendPath, "index.html"));
 });
 
+// Start server
 app.listen(PORT, () => {
-  console.log(`🚀 USPS Dashboard running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
