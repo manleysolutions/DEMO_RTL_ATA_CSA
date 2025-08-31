@@ -1,18 +1,17 @@
 import "./index.css";
 
+let allSites = []; // store full dataset for filtering
+
 // --- Toast Helper ---
 function showToast(message, type = "info") {
   const container = document.getElementById("toast-container");
-
   const toast = document.createElement("div");
   toast.className = `
     px-4 py-2 rounded shadow text-white animate-fadeIn
     ${type === "success" ? "bg-green-600" : type === "error" ? "bg-red-600" : "bg-blue-600"}
   `;
   toast.textContent = message;
-
   container.appendChild(toast);
-
   setTimeout(() => {
     toast.classList.add("opacity-0", "transition-opacity", "duration-500");
     setTimeout(() => toast.remove(), 500);
@@ -24,15 +23,13 @@ window.pingSite = async (id) => {
   const res = await fetch(`/api/ping/${id}`, { method: "POST" });
   const data = await res.json();
   showToast(data.msg, data.ok ? "success" : "error");
-  loadSites();
+  await loadSites();
 };
-
 window.rebootSite = async (id) => {
   const res = await fetch(`/api/reboot/${id}`, { method: "POST" });
   const data = await res.json();
   showToast(data.msg, data.ok ? "success" : "error");
 };
-
 window.fetchLogs = async (id) => {
   const res = await fetch(`/api/logs/${id}`);
   const data = await res.json();
@@ -52,15 +49,12 @@ function renderFXSLines(lines) {
   `;
 }
 
-// --- Load table ---
-async function loadSites() {
-  const res = await fetch("/api/sites");
-  const sites = await res.json();
-
+// --- Render table with filters ---
+function renderSites(filteredSites) {
   const table = document.getElementById("sitesTable");
   table.innerHTML = "";
 
-  sites.forEach((site) => {
+  filteredSites.forEach((site) => {
     const row = document.createElement("tr");
     row.className = "border-b cursor-pointer hover:bg-gray-50";
 
@@ -98,17 +92,15 @@ async function loadSites() {
 
     table.appendChild(row);
 
-    // Expand line row
+    // Expand lines row
     if (site.fxsLines && site.fxsLines.length > 0) {
       const lineRow = document.createElement("tr");
       const colSpan = 7;
       lineRow.innerHTML = `<td colspan="${colSpan}">${renderFXSLines(site.fxsLines)}</td>`;
       lineRow.className = "hidden site-lines-" + site.id;
-
       row.addEventListener("click", () => {
         lineRow.classList.toggle("hidden");
       });
-
       table.appendChild(lineRow);
     }
   });
@@ -116,6 +108,41 @@ async function loadSites() {
   document.getElementById("lastUpdated").textContent =
     "Updated: " + new Date().toLocaleString();
 }
+
+// --- Load data ---
+async function loadSites() {
+  const res = await fetch("/api/sites");
+  allSites = await res.json();
+  applyFilters();
+}
+
+// --- Apply filters ---
+function applyFilters() {
+  const statusFilter = document.getElementById("statusFilter").value;
+  const deviceFilter = document.getElementById("deviceFilter").value;
+  const search = document.getElementById("searchInput").value.toLowerCase();
+
+  let filtered = [...allSites];
+
+  if (statusFilter) {
+    filtered = filtered.filter((s) => s.status === statusFilter);
+  }
+  if (deviceFilter) {
+    filtered = filtered.filter((s) => s.device === deviceFilter);
+  }
+  if (search) {
+    filtered = filtered.filter((s) =>
+      s.location.toLowerCase().includes(search)
+    );
+  }
+
+  renderSites(filtered);
+}
+
+// --- Event listeners for filters ---
+document.getElementById("statusFilter").addEventListener("change", applyFilters);
+document.getElementById("deviceFilter").addEventListener("change", applyFilters);
+document.getElementById("searchInput").addEventListener("input", applyFilters);
 
 loadSites();
 setInterval(loadSites, 10000);
