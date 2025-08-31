@@ -1,35 +1,27 @@
+// server.mjs
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const app = express();
-const PORT = process.env.PORT || 4000;
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// API routes
+const app = express();
+const PORT = process.env.PORT || 4000;
+
+// Serve static frontend
+app.use(express.static(path.join(__dirname, "public")));
+
+// API route example
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", time: new Date().toISOString() });
+  res.json({ status: "ok" });
 });
 
-app.get("/api/sites", (req, res) => {
-  res.json([
-    { id: 1, name: "USPS HQ", status: "Connected" },
-    { id: 2, name: "Branch Office", status: "Not Connected" }
-  ]);
-});
-
-// Serve frontend build
-const frontendPath = path.join(__dirname, "frontend", "dist");
-app.use(express.static(frontendPath));
-
-// Catch-all → React index.html
+// Fallback to React index.html
 app.get("*", (req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
