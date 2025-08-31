@@ -2,10 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* USPS-specific base styles */
 body {
-  @apply bg-uspsGray text-gray-800;
+  @apply bg-uspsGray text-gray-900 font-sans;
 }
 
 h1 {
-  @apply text-3xl font-bold text-uspsBlue mb-4;
+  @apply text-3xl font-bold text-uspsBlue mb-6;
 }
