@@ -3,51 +3,50 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const app = express();
-const PORT = process.env.PORT || 4000;
-
-// Fix __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware
+const app = express();
+const PORT = process.env.PORT || 4000;
+
+// Allow JSON parsing
 app.use(express.json());
 
-// Root route
-app.get("/", (req, res) => {
-  res.send("✅ CSA USPS Dashboard API is online");
-});
-
-// Health check
+// Simple health check
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", service: "CSA USPS Dashboard", timestamp: new Date() });
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// Sites endpoint (reads from ./data folder)
+// List all CSA site status files in data/
 app.get("/api/sites", (req, res) => {
   try {
     const dataDir = path.join(__dirname, "data");
     let sites = [];
 
     if (fs.existsSync(dataDir)) {
-      const siteDirs = fs.readdirSync(dataDir);
-      siteDirs.forEach((site) => {
-        const statusFile = path.join(dataDir, site, "status.json");
+      const deviceDirs = fs.readdirSync(dataDir);
+      deviceDirs.forEach(device => {
+        const statusFile = path.join(dataDir, device, "status.json");
         if (fs.existsSync(statusFile)) {
-          const status = JSON.parse(fs.readFileSync(statusFile, "utf8"));
-          sites.push({ id: site, ...status });
+          const status = JSON.parse(fs.readFileSync(statusFile, "utf-8"));
+          sites.push({ id: device, ...status });
         }
       });
     }
 
     res.json({ sites });
   } catch (err) {
-    console.error("Error loading sites:", err);
+    console.error("Error reading sites:", err);
     res.status(500).json({ error: "Failed to load sites" });
   }
 });
 
+// Root route (so “/” doesn’t 404)
+app.get("/", (req, res) => {
+  res.send("✅ USPS Dashboard backend is running. Use /api/health or /api/sites.");
+});
+
 // Start server
 app.listen(PORT, () => {
-  console.log(`CSA USPS Dashboard API listening on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
