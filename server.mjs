@@ -3,38 +3,39 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const app = express();
-const PORT = process.env.PORT || 4000;
-
-// Resolve __dirname since we are in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware for JSON
+const app = express();
+const PORT = process.env.PORT || 4000;
+
+// Middleware for JSON API
 app.use(express.json());
 
-// --- API ROUTES ---
+// Example API endpoints
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", time: new Date().toISOString() });
+  res.json({ status: "ok", uptime: process.uptime() });
 });
 
 app.get("/api/sites", (req, res) => {
+  // Demo USPS sites
   res.json([
-    { id: "CSA09", status: "online", ip: "162.190.64.11" },
-    { id: "USPS-NO-CSA", status: "no CSA installed" },
+    { id: 1, name: "USPS HQ", status: "online", csa: true },
+    { id: 2, name: "USPS Miami", status: "offline", csa: false },
+    { id: 3, name: "USPS Jacksonville", status: "online", csa: true },
+    { id: 4, name: "USPS Dallas", status: "unknown", csa: false },
+    { id: 5, name: "USPS Denver", status: "online", csa: true },
   ]);
 });
 
-// --- FRONTEND ROUTES ---
-// Serve static frontend (Vite build)
+// Serve static Vite build files
 app.use(express.static(path.join(__dirname, "dist")));
 
-// Catch-all: return index.html for React/Vite router
+// Fallback: serve index.html for React/Vite routing
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
-// --- START SERVER ---
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
