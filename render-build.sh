@@ -1,9 +1,15 @@
 #!/bin/bash
-# Install frontend dependencies
+set -e
+
+echo "📦 Building USPS Dashboard..."
+
+# Build frontend
 cd frontend
 npm install
 npm run build
 cd ..
 
-# Install backend dependencies
+# Install backend
 npm install
+
+echo "✅ Build complete"
