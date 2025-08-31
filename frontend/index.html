@@ -16,6 +16,26 @@
         <span id="lastUpdated" class="text-gray-500 text-sm">Updated: —</span>
       </header>
 
+      <!-- Summary Bar -->
+      <div id="summaryBar" class="grid grid-cols-4 gap-4 mb-6">
+        <div class="bg-white shadow rounded-lg p-4 text-center">
+          <h2 class="text-sm font-semibold text-gray-600">Total Sites</h2>
+          <p id="totalSites" class="text-xl font-bold text-gray-800">0</p>
+        </div>
+        <div class="bg-green-100 shadow rounded-lg p-4 text-center">
+          <h2 class="text-sm font-semibold text-green-700">Online</h2>
+          <p id="onlineSites" class="text-xl font-bold text-green-700">0</p>
+        </div>
+        <div class="bg-red-100 shadow rounded-lg p-4 text-center">
+          <h2 class="text-sm font-semibold text-red-700">Offline</h2>
+          <p id="offlineSites" class="text-xl font-bold text-red-700">0</p>
+        </div>
+        <div class="bg-yellow-100 shadow rounded-lg p-4 text-center">
+          <h2 class="text-sm font-semibold text-yellow-700">Pending</h2>
+          <p id="pendingSites" class="text-xl font-bold text-yellow-700">0</p>
+        </div>
+      </div>
+
       <!-- Filters -->
       <div class="bg-white shadow rounded-lg p-4 mb-6 flex space-x-4">
         <select id="statusFilter" class="border px-2 py-1 rounded">

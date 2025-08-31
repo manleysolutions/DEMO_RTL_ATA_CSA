@@ -1,6 +1,6 @@
 import "./index.css";
 
-let allSites = []; // store full dataset for filtering
+let allSites = [];
 
 // --- Toast Helper ---
 function showToast(message, type = "info") {
@@ -49,10 +49,21 @@ function renderFXSLines(lines) {
   `;
 }
 
-// --- Render table with filters ---
+// --- Render table with summary ---
 function renderSites(filteredSites) {
   const table = document.getElementById("sitesTable");
   table.innerHTML = "";
+
+  // Summary counts
+  const total = filteredSites.length;
+  const online = filteredSites.filter((s) => s.status === "online").length;
+  const offline = filteredSites.filter((s) => s.status === "offline").length;
+  const pending = filteredSites.filter((s) => s.status === "pending").length;
+
+  document.getElementById("totalSites").textContent = total;
+  document.getElementById("onlineSites").textContent = online;
+  document.getElementById("offlineSites").textContent = offline;
+  document.getElementById("pendingSites").textContent = pending;
 
   filteredSites.forEach((site) => {
     const row = document.createElement("tr");
@@ -66,13 +77,10 @@ function renderSites(filteredSites) {
         : "text-yellow-600 font-semibold";
 
     const formattedDate = site.lastSync
-      ? new Date(site.lastSync).toLocaleString("en-US", {
+      ? new Date(site.lastSync).toLocaleDateString("en-US", {
           month: "2-digit",
           day: "2-digit",
           year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
         })
       : "—";
 
@@ -139,7 +147,6 @@ function applyFilters() {
   renderSites(filtered);
 }
 
-// --- Event listeners for filters ---
 document.getElementById("statusFilter").addEventListener("change", applyFilters);
 document.getElementById("deviceFilter").addEventListener("change", applyFilters);
 document.getElementById("searchInput").addEventListener("input", applyFilters);
