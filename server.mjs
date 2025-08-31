@@ -7,6 +7,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
+});
 
 // --- Serve frontend from Vite build ---
 const frontendPath = path.join(__dirname, "frontend", "dist");
@@ -31,6 +34,6 @@ app.get("*", (req, res) => {
 });
 
 // --- Start server ---
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
 });
