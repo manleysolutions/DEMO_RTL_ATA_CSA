@@ -1,93 +1,85 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>USPS True911+ Deployment Dashboard</title>
-  <link rel="stylesheet" href="/app.css" />
-</head>
-<body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="emoji">📡</span>
-      <h1>USPS True911+ Deployment Dashboard</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>USPS True911+ Deployment Dashboard</title>
+    <script type="module" crossorigin src="/assets/index-B9BKm5sy.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Bqk-tEa-.css">
+  </head>
+  <body class="bg-gray-100 text-gray-900">
+    <!-- Toast container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <div class="p-6">
+      <header class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-blue-900">📡 USPS True911+ Deployment Dashboard</h1>
+        <span id="lastUpdated" class="text-gray-500 text-sm">Updated: —</span>
+      </header>
+
+      <!-- Summary Bar -->
+      <div id="summaryBar" class="grid grid-cols-4 gap-4 mb-6">
+        <div id="filter-total" class="cursor-pointer bg-white shadow rounded-lg p-4 text-center hover:bg-gray-50">
+          <h2 class="text-sm font-semibold text-gray-600">Total Sites</h2>
+          <p id="totalSites" class="text-xl font-bold text-gray-800">0</p>
+        </div>
+        <div id="filter-online" class="cursor-pointer bg-green-100 shadow rounded-lg p-4 text-center hover:bg-green-200">
+          <h2 class="text-sm font-semibold text-green-700">Online</h2>
+          <p id="onlineSites" class="text-xl font-bold text-green-700">0</p>
+        </div>
+        <div id="filter-offline" class="cursor-pointer bg-red-100 shadow rounded-lg p-4 text-center hover:bg-red-200">
+          <h2 class="text-sm font-semibold text-red-700">Offline</h2>
+          <p id="offlineSites" class="text-xl font-bold text-red-700">0</p>
+        </div>
+        <div id="filter-pending" class="cursor-pointer bg-yellow-100 shadow rounded-lg p-4 text-center hover:bg-yellow-200">
+          <h2 class="text-sm font-semibold text-yellow-700">Pending</h2>
+          <p id="pendingSites" class="text-xl font-bold text-yellow-700">0</p>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="bg-white shadow rounded-lg p-4 mb-6 flex space-x-4">
+        <select id="statusFilter" class="border px-2 py-1 rounded">
+          <option value="">All Status</option>
+          <option value="online">Online</option>
+          <option value="offline">Offline</option>
+          <option value="pending">Pending</option>
+        </select>
+
+        <select id="deviceFilter" class="border px-2 py-1 rounded">
+          <option value="">All Devices</option>
+          <option value="CSA">CSA</option>
+          <option value="ATA">ATA</option>
+          <option value="SLELTE">SLELTE</option>
+          <option value="MS130">MS130</option>
+        </select>
+
+        <input
+          type="text"
+          id="searchInput"
+          class="border px-2 py-1 rounded flex-1"
+          placeholder="Search by location..."
+        />
+      </div>
+
+      <!-- Table -->
+      <div class="bg-white shadow rounded-lg p-4">
+        <table class="min-w-full border-collapse">
+          <thead>
+            <tr class="bg-gray-200 text-left">
+              <th class="px-4 py-2">ID</th>
+              <th class="px-4 py-2">E911 Location</th>
+              <th class="px-4 py-2">Status</th>
+              <th class="px-4 py-2">Device</th>
+              <th class="px-4 py-2">FXS Lines</th>
+              <th class="px-4 py-2">Last Sync</th>
+              <th class="px-4 py-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="sitesTable"></tbody>
+        </table>
+      </div>
     </div>
-    <div id="updatedAt" class="muted"></div>
-  </header>
 
-  <main class="container">
-    <!-- KPI cards -->
-    <section class="cards">
-      <div class="card">
-        <div class="card-title">Total Sites</div>
-        <div id="kpiTotal" class="card-value">0</div>
-      </div>
-      <div class="card success">
-        <div class="card-title">Online</div>
-        <div id="kpiOnline" class="card-value">0</div>
-      </div>
-      <div class="card danger">
-        <div class="card-title">Offline</div>
-        <div id="kpiOffline" class="card-value">0</div>
-      </div>
-      <div class="card warning">
-        <div class="card-title">Pending</div>
-        <div id="kpiPending" class="card-value">0</div>
-      </div>
-    </section>
-
-    <!-- Filters -->
-    <section class="filters">
-      <select id="statusFilter">
-        <option value="all">All Status</option>
-        <option value="online">Online</option>
-        <option value="offline">Offline</option>
-        <option value="pending">Pending</option>
-      </select>
-      <select id="deviceFilter">
-        <option value="all">All Devices</option>
-        <option value="MS130">MS130</option>
-        <option value="SLELTE">SLELTE</option>
-        <option value="ATA">ATA</option>
-        <option value="CSA">CSA</option>
-      </select>
-      <input id="searchInput" type="search" placeholder="Search by location..." />
-      <button id="refreshBtn" class="btn small">Refresh</button>
-    </section>
-
-    <!-- Table -->
-    <section class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>E911 Location</th>
-            <th>Status</th>
-            <th>Device</th>
-            <th>FXS Lines</th>
-            <th>Last Sync</th>
-            <th class="center">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </section>
-  </main>
-
-  <!-- Logs modal -->
-  <div id="logsModal" class="modal hidden">
-    <div class="modal-content">
-      <div class="modal-head">
-        <h3 id="logsTitle">Logs</h3>
-        <button id="closeLogs" class="btn ghost">✕</button>
-      </div>
-      <div id="logsBody" class="logs"></div>
-    </div>
-  </div>
-
-  <!-- Toast -->
-  <div id="toast" class="toast hidden"></div>
-
-  <script src="/app.js" type="module"></script>
-</body>
+  </body>
 </html>

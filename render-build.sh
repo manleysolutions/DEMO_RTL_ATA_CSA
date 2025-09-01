@@ -1,8 +1,17 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
+set -e
 
 echo "📦 Installing backend deps..."
-npm ci --omit=dev || npm install
+npm install --prefix backend || true
 
-echo "🖼️ Using static assets from /public (no frontend build step)."
-# If you later move back to Vite, replace the line above with your build/copy steps.
+echo "📦 Building frontend..."
+cd frontend
+npm install
+npm run build
+cd ..
+
+echo "📂 Moving frontend dist into /public..."
+rm -rf public/*
+cp -r frontend/dist/* public/
+
+echo "✅ Build complete"
