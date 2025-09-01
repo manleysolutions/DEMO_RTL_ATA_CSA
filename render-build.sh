@@ -1,17 +1,23 @@
 #!/bin/bash
 set -e
 
-echo "📦 Installing backend deps..."
-npm install --prefix backend || true
+echo "📂 Building USPS Dashboard frontend..."
 
-echo "📦 Building frontend..."
+# Move into frontend
 cd frontend
-npm install
-npm run build
-cd ..
 
-echo "📂 Moving frontend dist into /public..."
+# Install deps
+echo "📦 Installing frontend deps..."
+npm install --legacy-peer-deps
+
+# Build frontend
+echo "⚡ Running Vite build..."
+npm run build
+
+# Copy build output into /public
+echo "📂 Moving dist to /public..."
+cd ..
 rm -rf public/*
 cp -r frontend/dist/* public/
 
-echo "✅ Build complete"
+echo "✅ Build complete!"
