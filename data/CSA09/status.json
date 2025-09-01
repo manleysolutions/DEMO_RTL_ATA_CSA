@@ -1,8 +1,8 @@
 {
   "csa_id": "CSA09",
-  "timestamp": "2025-09-01T15:39:05.581364",
+  "timestamp": "2025-09-01T15:39:06.129502",
   "hostname": "CSA09",
-  "ip_eth0": null,
+  "ip_eth0": "192.168.2.10\n192.168.1.61",
   "ip_wlan0": null,
   "ata_reachable": false
 }
