@@ -1,21 +1,8 @@
 #!/usr/bin/env bash
-# --- render-build.sh ---
-# Build pipeline for Render.com deployment
-
-set -o errexit
+set -euo pipefail
 
 echo "📦 Installing backend deps..."
-npm install
+npm ci --omit=dev || npm install
 
-echo "📦 Building frontend..."
-cd frontend
-npm install
-npm run build
-cd ..
-
-echo "📂 Moving frontend dist into /public..."
-rm -rf ./public
-mkdir -p ./public
-cp -r ./frontend/dist/* ./public/
-
-echo "✅ Build complete"
+echo "🖼️ Using static assets from /public (no frontend build step)."
+# If you later move back to Vite, replace the line above with your build/copy steps.
