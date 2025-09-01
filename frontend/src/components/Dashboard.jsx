@@ -1,62 +1,60 @@
 import React, { useEffect, useState } from "react";
 
-const Dashboard = () => {
+export default function Dashboard() {
   const [sites, setSites] = useState([]);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [countdown, setCountdown] = useState(90);
 
-  // Fetch site data from API
   const fetchSites = async () => {
     try {
-      const response = await fetch("/api/sites");
-      const data = await response.json();
+      const res = await fetch("/api/sites");
+      const data = await res.json();
+      console.log("Fetched sites:", data); // DEBUG
       setSites(data);
       setLastUpdated(new Date());
-      console.log("Dashboard reloaded"); // ✅ Debug log
     } catch (err) {
-      console.error("Failed to fetch sites:", err);
+      console.error("Error fetching sites:", err);
     }
   };
 
-  // Auto refresh logic
+  // auto-refresh every 90s
   useEffect(() => {
     fetchSites();
-
-    const interval = setInterval(() => {
-      fetchSites();
-      setCountdown(90);
-    }, 90000); // every 90s
-
+    const interval = setInterval(fetchSites, 90000);
     return () => clearInterval(interval);
   }, []);
 
-  // Countdown timer
+  // countdown timer
   useEffect(() => {
     const timer = setInterval(() => {
-      setCountdown((prev) => (prev > 0 ? prev - 1 : 90));
+      setCountdown((c) => (c > 0 ? c - 1 : 90));
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold text-blue-800">
+      <h1 className="text-xl font-bold text-blue-800">
         USPS True911+ Deployment Dashboard
       </h1>
-      <p className="text-gray-500 text-sm">
+      <p className="text-sm text-gray-600">
         Updated: {lastUpdated.toLocaleTimeString()} | Refresh in:{" "}
         <span className={countdown <= 10 ? "text-red-600 animate-pulse" : ""}>
           {countdown}s
         </span>
       </p>
+      <p className="text-sm text-gray-500 mb-4">Loaded {sites.length} site(s)</p>
 
-      {/* Debug: Show site count */}
-      <p className="mt-2 text-sm text-gray-600">
-        Loaded {sites.length} site(s)
-      </p>
+      <div className="grid gap-4">
+        {sites.map((site) => (
+          <div key={site.id} className="p-4 bg-white rounded shadow">
+            <h2 className="font-semibold">{site.e911Location}</h2>
+            <p>Status: <span className="font-mono">{site.status}</span></p>
+            <p>Device: {site.device}</p>
+            <p>Last Sync: {site.lastSync || "—"}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
-};
-
-export default Dashboard;
+}
