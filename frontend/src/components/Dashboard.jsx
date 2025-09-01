@@ -11,20 +11,20 @@ function Dashboard() {
       const data = await res.json();
       setSites(data);
       setLastUpdated(new Date().toLocaleString());
-      setCountdown(90); // reset timer every refresh
+      setCountdown(90); // reset countdown
     } catch (err) {
       console.error("Error fetching sites:", err);
     }
   };
 
-  // Auto refresh every 90s
+  // Refresh every 90s
   useEffect(() => {
     fetchSites();
     const interval = setInterval(fetchSites, 90000);
     return () => clearInterval(interval);
   }, []);
 
-  // Countdown ticker
+  // Countdown timer
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
@@ -38,15 +38,21 @@ function Dashboard() {
         <h1 className="text-2xl font-bold text-blue-900">
           USPS True911+ Deployment Dashboard
         </h1>
-        <div className="text-sm text-gray-600">
-          Updated: {lastUpdated || "—"} <br />
+        <div className="text-sm text-gray-600 text-right">
+          Updated: {lastUpdated || "—"}
+          <div className="mt-1 w-40 h-3 bg-gray-200 rounded overflow-hidden">
+            <div
+              className="h-3 bg-blue-600 transition-all duration-1000"
+              style={{ width: `${(countdown / 90) * 100}%` }}
+            ></div>
+          </div>
           <span className="text-blue-600 font-semibold">
             Refresh in {countdown}s
           </span>
         </div>
       </header>
 
-      {/* Stats cards */}
+      {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="bg-white shadow rounded p-4 text-center">
           <div className="text-gray-500">Total Sites</div>
