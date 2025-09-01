@@ -1,0 +1,15 @@
+# Core runtime
+flask
+requests
+python-dotenv
+
+# Voice (local fallback)
+pyttsx3
+pyaudio
+speechrecognition
+
+# Voice (cloud, Samantha)
+elevenlabs==0.2.27   # official ElevenLabs API client
+
+# JSON + utilities
+simplejson
