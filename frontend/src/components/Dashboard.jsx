@@ -11,26 +11,30 @@ function Dashboard() {
       const data = await res.json();
       setSites(data);
       setLastUpdated(new Date().toLocaleString());
-      setCountdown(90); // reset countdown
+      setCountdown(90); // reset timer
     } catch (err) {
       console.error("Error fetching sites:", err);
     }
   };
 
-  // Refresh every 90s
+  // Auto refresh every 90s
   useEffect(() => {
     fetchSites();
     const interval = setInterval(fetchSites, 90000);
     return () => clearInterval(interval);
   }, []);
 
-  // Countdown timer
+  // Countdown ticker
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Decide progress bar color
+  const barColor =
+    countdown <= 10 ? "bg-red-600 animate-pulse" : "bg-blue-600";
 
   return (
     <div className="p-6">
@@ -42,11 +46,15 @@ function Dashboard() {
           Updated: {lastUpdated || "—"}
           <div className="mt-1 w-40 h-3 bg-gray-200 rounded overflow-hidden">
             <div
-              className="h-3 bg-blue-600 transition-all duration-1000"
+              className={`h-3 transition-all duration-1000 ${barColor}`}
               style={{ width: `${(countdown / 90) * 100}%` }}
             ></div>
           </div>
-          <span className="text-blue-600 font-semibold">
+          <span
+            className={`font-semibold ${
+              countdown <= 10 ? "text-red-600" : "text-blue-600"
+            }`}
+          >
             Refresh in {countdown}s
           </span>
         </div>
