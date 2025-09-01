@@ -39,8 +39,40 @@
       "Help is dispatched. Stay on the line; I'm here with you. You're not alone.",
       "Emergency team is en route. Time to arrival is approximately 10 minutes. Hang in there."
     ],
+    "situational_awareness": [
+      "Based on the signal, you're in building X, floor Y. Confirm if possible.",
+      "DTMF tone detected. Confirming your location with GPS backup."
+    ],
     "closure": [
       "Rescue team has arrived. Thank you for staying calm. Samantha signing off."
+    ]
+  },
+  "contact_id_codes": {
+    "initial_detection": [
+      "Contact ID code received. Analyzing... Code [CODE]: [DESCRIPTION]. Taking action."
+    ],
+    "fire_alarm": [
+      "Fire alarm detected. Notifying PSAP and building security. Evacuate if safe."
+    ],
+    "medical": [
+      "Medical emergency detected. Dispatching ambulance. Describe symptoms if possible."
+    ],
+    "burglary": [
+      "Burglary alarm triggered. Alerting police. Is anyone in danger?"
+    ],
+    "reassurance": [
+      "Code processed. Authorities notified. Stay safe; updates incoming."
+    ]
+  },
+  "situational_awareness": {
+    "general": [
+      "Samantha monitoring. System status: All connections stable. No alerts."
+    ],
+    "network_issue": [
+      "Network disruption detected. Switching to failover. Connectivity restored."
+    ],
+    "power_loss": [
+      "Power outage detected. Switching to battery. Estimated runtime: 2 hours."
     ]
   },
   "farewell": {

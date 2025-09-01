@@ -1,48 +1,13 @@
 #!/usr/bin/env python3
-import json
-import random
-import pyttsx3
-import os
-import time
+import os, json, random
+from pathlib import Path
 
-# -------------------------------
-# Load Samantha's dialog database
-# -------------------------------
-DIALOG_FILE = os.path.join(os.path.dirname(__file__), "samantha_dialog.json")
-
-if not os.path.exists(DIALOG_FILE):
-    # Create a default dialog file if missing
+# --- Load dialog repository ---
+DIALOG_FILE = Path(__file__).with_name("samantha_dialog.json")
+if not DIALOG_FILE.exists():
     default_dialog = {
         "greetings": {
-            "initial": ["Hello, this is Samantha, your emergency assistant. How can I help you today?"],
-            "commissioning_start": ["Welcome to the Central Station Appliance setup. Let's get started. What do you need help with?"],
-            "emergency_detection": ["This is Samantha. I detect an emergency. Are you safe? Please describe the situation."]
-        },
-        "commissioning": {
-            "network_check": ["Checking networks... Wi-Fi connected. Ethernet stable. Cellular signal good. All systems nominal."],
-            "telnyx_sip_setup": ["Configuring Telnyx SIP... Enter credentials or say 'test connection' to verify."],
-            "success": ["Commissioning complete. CSA is ready for use. Test with 'emergency simulation'."],
-            "failure": ["Connection issue detected. Please check the cable and try again. Or say 'retry'."]
-        },
-        "emergency_entrapment": {
-            "initial_response": [
-                "This is Samantha. I understand you may be trapped. Stay calm; help is on the way. Are you in an elevator?",
-                "Samantha here. I detect an entrapment signal. Don't panic. Can you tell me your location?"
-            ],
-            "follow_up_questions": [
-                "Are you alone? Is anyone hurt? Please describe the situation.",
-                "What's your name? How many people are with you? Do you have any medical conditions?",
-                "Is the air okay? Can you see any lights or buttons?"
-            ],
-            "reassurance": [
-                "I'm contacting emergency services right now. They will be with you shortly. Breathe slowly.",
-                "Help is dispatched. Stay on the line; I'm here with you. You're not alone.",
-                "Emergency team is en route. Time to arrival is approximately 10 minutes. Hang in there."
-            ],
-            "closure": ["Rescue team has arrived. Thank you for staying calm. Samantha signing off."]
-        },
-        "farewell": {
-            "end_conversation": ["Thank you for using Samantha. Stay safe. Goodbye."]
+            "initial": ["Hello, this is Samantha, your emergency assistant. How can I help you today?"]
         }
     }
     with open(DIALOG_FILE, "w") as f:
@@ -51,41 +16,55 @@ if not os.path.exists(DIALOG_FILE):
 with open(DIALOG_FILE, "r") as f:
     dialog = json.load(f)
 
-# -------------------------------
-# Text-to-Speech Engine
-# -------------------------------
-engine = pyttsx3.init()
-engine.setProperty("rate", 165)  # words per minute
-engine.setProperty("volume", 1.0)
+# --- ElevenLabs (Samantha voice) ---
+try:
+    from elevenlabs import ElevenLabs, play
+    ELEVEN_API_KEY = os.getenv("ELEVENLABS_API_KEY")
+    VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "Samantha")  # replace with real ID if needed
+    client = ElevenLabs(api_key=ELEVEN_API_KEY) if ELEVEN_API_KEY else None
+except Exception as e:
+    print("[WARN] ElevenLabs not available:", e)
+    client = None
 
-# -------------------------------
-# Speak helpers
-# -------------------------------
-def speak(text: str):
-    """Speak a given line with pyttsx3"""
-    print(f"Samantha: {text}")
-    engine.say(text)
-    engine.runAndWait()
-
-def speak_from(category: str, subcategory: str):
-    """Pick a random phrase from the dialog file and speak it"""
+# --- Local fallback (pyttsx3) ---
+def fallback_tts(text: str):
     try:
-        options = dialog[category][subcategory]
-        phrase = random.choice(options)
-        speak(phrase)
-    except KeyError:
-        speak(f"[Missing phrase: {category}/{subcategory}]")
+        import pyttsx3
+        engine = pyttsx3.init()
+        engine.say(text)
+        engine.runAndWait()
+    except Exception as e:
+        print("[ERROR] pyttsx3 fallback failed:", e)
+        print(f"(Would have spoken) {text}")
 
-# -------------------------------
-# Quick test flow
-# -------------------------------
+# --- Unified speak() function ---
+def speak(text: str):
+    if client:
+        try:
+            audio = client.generate(
+                text=text,
+                voice=VOICE_ID,
+                model="eleven_monolingual_v1"
+            )
+            play(audio)
+            return
+        except Exception as e:
+            print("[WARN] ElevenLabs failed, falling back to pyttsx3:", e)
+    fallback_tts(text)
+
+# --- Helper to speak from dialog repo ---
+def speak_from(category: str, key: str):
+    try:
+        options = dialog[category][key]
+        line = random.choice(options)
+        print(f"[Samantha] {line}")
+        speak(line)
+    except KeyError:
+        print(f"[ERROR] No dialog found for {category}:{key}")
+
+# --- Demo mode ---
 if __name__ == "__main__":
+    print("Samantha v2 ready. Testing sample phrases...")
     speak_from("greetings", "initial")
-    time.sleep(1)
-    speak_from("commissioning", "network_check")
-    time.sleep(1)
     speak_from("emergency_entrapment", "initial_response")
-    time.sleep(1)
     speak_from("emergency_entrapment", "reassurance")
-    time.sleep(1)
-    speak_from("farewell", "end_conversation")
