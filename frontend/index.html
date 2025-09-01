@@ -1,13 +1,26 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>USPS True911+ Deployment Dashboard</title>
+    <title>Red Tag Lines Deployment Dashboard</title>
+    <link rel="stylesheet" href="/src/index.css" />
+    <!-- Leaflet CDN for map -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+      defer
+    ></script>
   </head>
-  <body class="bg-gray-100">
+  <body>
     <div id="root"></div>
-    <!-- IMPORTANT: reference .jsx entry -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

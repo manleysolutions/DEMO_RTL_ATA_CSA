@@ -1,23 +1,21 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
+# Build frontend and place into /public for the Node server to serve
 echo "📂 Building USPS Dashboard frontend..."
+pushd "$(dirname "$0")/frontend" >/dev/null
 
-# Move into frontend
-cd frontend
-
-# Install deps
 echo "📦 Installing frontend deps..."
-npm install --legacy-peer-deps
+npm ci || npm install
 
-# Build frontend
 echo "⚡ Running Vite build..."
 npm run build
 
-# Copy build output into /public
+popd >/dev/null
+
 echo "📂 Moving dist to /public..."
-cd ..
-rm -rf public/*
+rm -rf public
+mkdir -p public
 cp -r frontend/dist/* public/
 
 echo "✅ Build complete!"

@@ -1,0 +1,35 @@
+[
+  {
+    "lineId": "USPS-HQ-L1",
+    "label": "Elevator A",
+    "type": "Elevator",
+    "lifeSafety": true,
+    "did": "+12059641709",
+    "msisdn": "",
+    "installed": "2025-08-15",
+    "lastSeen": "2025-09-01T12:20:00Z",
+    "status": "online"
+  },
+  {
+    "lineId": "USPS-HQ-L2",
+    "label": "Fire Alarm Panel",
+    "type": "Fire Alarm",
+    "lifeSafety": true,
+    "did": "+12058809388",
+    "msisdn": "",
+    "installed": "2025-08-15",
+    "lastSeen": "2025-09-01T12:15:00Z",
+    "status": "online"
+  },
+  {
+    "lineId": "USPS-HQ-L3",
+    "label": "Front Desk Voice",
+    "type": "Voice",
+    "lifeSafety": false,
+    "did": "+19043721599",
+    "msisdn": "",
+    "installed": "2025-08-15",
+    "lastSeen": "2025-09-01T11:58:00Z",
+    "status": "online"
+  }
+]

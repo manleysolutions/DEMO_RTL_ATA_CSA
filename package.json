@@ -1,12 +1,14 @@
 {
-  "name": "usps-dashboard",
+  "name": "rtl-dashboard",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "cd frontend && npm install && npm run build",
-    "start": "node server.mjs"
+    "start": "node server.mjs",
+    "build": "./render-build.sh"
   },
   "dependencies": {
-    "express": "^4.19.2"
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.17.3"
   }
 }
