@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import Dashboard from "./components/Dashboard.jsx";  // ✅ our new component
+import Dashboard from "./components/Dashboard.jsx";  // ✅ Ensure our Dashboard mounts
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
