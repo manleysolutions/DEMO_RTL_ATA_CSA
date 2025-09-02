@@ -3,8 +3,7 @@ import MapView from "./MapView.jsx";
 
 const TENANT = "USPS"; // multi-tenant hook
 
-export default function Dashboard({ me }) {
-  // --- state ---
+export default function Dashboard({ onLogout }) {
   const [sites, setSites] = useState([]);
   const [mapSites, setMapSites] = useState([]);
   const [view, setView] = useState("list"); // list | map
@@ -24,9 +23,7 @@ export default function Dashboard({ me }) {
   const REFRESH_SECS = 90;
   const [t, setT] = useState(REFRESH_SECS);
 
-  // --- load data ---
   async function load() {
-    // sites + map
     const [s, m] = await Promise.all([
       fetch(`/api/sites?tenant=${TENANT}`).then((r) => r.json()),
       fetch(`/api/map/sites?tenant=${TENANT}`).then((r) => r.json()),
@@ -34,12 +31,12 @@ export default function Dashboard({ me }) {
     setSites(s);
     setMapSites(m);
 
-    // carrier data
+    // Carrier data
     const [n, c, msg, sav] = await Promise.all([
-      fetch(`/api/carrier/numbers`).then((r) => r.json()),
-      fetch(`/api/carrier/calls`).then((r) => r.json()),
-      fetch(`/api/carrier/messages`).then((r) => r.json()),
-      fetch(`/api/savings/demo`).then((r) => r.json()),
+      fetch("/api/carrier/numbers").then((r) => r.json()),
+      fetch("/api/carrier/calls").then((r) => r.json()),
+      fetch("/api/carrier/messages").then((r) => r.json()),
+      fetch("/api/savings/demo").then((r) => r.json()),
     ]);
     setNumbers(n);
     setCalls(c);
@@ -49,14 +46,18 @@ export default function Dashboard({ me }) {
     console.log("Dashboard reloaded");
   }
 
-  // auto refresh
   useEffect(() => {
     load();
   }, []);
+
   useEffect(() => {
-    const id = setInterval(() => setT((x) => (x > 0 ? x - 1 : 0)), 1000);
+    const id = setInterval(
+      () => setT((x) => (x > 0 ? x - 1 : 0)),
+      1000
+    );
     return () => clearInterval(id);
   }, []);
+
   useEffect(() => {
     if (t === 0) {
       setT(REFRESH_SECS);
@@ -64,58 +65,53 @@ export default function Dashboard({ me }) {
     }
   }, [t]);
 
-  // --- theme toggle ---
   function toggleTheme() {
     const next = theme === "Light" ? "dark" : "Light";
     setTheme(next);
     document.documentElement.setAttribute("data-theme", next);
   }
 
-  // --- logout ---
-  async function logout() {
-    await fetch("/logout", { method: "POST" });
-    window.location.href = "/login";
-  }
-
-  // --- filtering ---
+  // filtering
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return sites;
     return sites.filter(
       (s) =>
-        (s.facilityName || "").toLowerCase().includes(q) ||
-        (s.address || "").toLowerCase().includes(q) ||
-        (s.pocName || "").toLowerCase().includes(q)
+        s.facilityName?.toLowerCase().includes(q) ||
+        s.address?.toLowerCase().includes(q) ||
+        s.pocName?.toLowerCase().includes(q)
     );
   }, [sites, query]);
 
-  // --- render ---
   return (
     <div className="p-4">
       {/* Header */}
-      <header className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Red Tag Lines Deployment Dashboard</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Red Tag Lines Dashboard</h1>
         <div className="flex gap-2">
           <button
             onClick={toggleTheme}
-            className="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700"
+            className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-lg"
           >
-            {theme === "Light" ? "Dark Mode" : "Light Mode"}
+            {theme === "Light" ? "Dark" : "Light"} Mode
           </button>
           <button
-            onClick={logout}
-            className="px-3 py-1 rounded bg-red-500 text-white"
+            onClick={async () => {
+              await fetch("/logout", { method: "POST" });
+              if (typeof onLogout === "function") onLogout();
+            }}
+            className="bg-red-500 text-white hover:bg-red-600 px-3 py-1 rounded-lg"
           >
             Logout
           </button>
         </div>
-      </header>
+      </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-4">
+      <div className="mb-4">
         <button
           onClick={() => setTab("sites")}
-          className={`px-3 py-1 rounded ${
+          className={`mr-2 px-3 py-1 rounded ${
             tab === "sites" ? "bg-blue-500 text-white" : "bg-gray-200"
           }`}
         >
@@ -131,39 +127,45 @@ export default function Dashboard({ me }) {
         </button>
       </div>
 
-      {/* Content */}
+      {/* Search */}
       {tab === "sites" && (
-        <div>
-          {/* Search */}
+        <div className="mb-4">
           <input
+            type="text"
+            placeholder="Search sites..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search sites..."
-            className="border p-2 rounded w-full mb-4"
+            className="border px-2 py-1 rounded w-full"
           />
-
-          {/* Site list */}
-          <ul className="space-y-2">
-            {filtered.map((s, i) => (
-              <li key={i} className="p-2 border rounded">
-                <strong>{s.facilityName}</strong> – {s.address} – POC:{" "}
-                {s.pocName}
-              </li>
-            ))}
-          </ul>
         </div>
+      )}
+
+      {/* Content */}
+      {tab === "sites" && (
+        <>
+          {view === "list" ? (
+            <ul>
+              {filtered.map((s, i) => (
+                <li key={i} className="border-b py-2">
+                  <div className="font-semibold">{s.facilityName}</div>
+                  <div className="text-sm text-gray-600">{s.address}</div>
+                  <div className="text-sm">POC: {s.pocName}</div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <MapView sites={mapSites} />
+          )}
+        </>
       )}
 
       {tab === "carrier" && (
         <div>
           <h2 className="text-xl font-bold mb-2">Carrier Data</h2>
-          <p>Numbers: {numbers.length}</p>
-          <p>Calls: {calls.length}</p>
-          <p>Messages: {messages.length}</p>
-          <p>
-            Savings: $
-            {savings && savings.annual ? savings.annual.toLocaleString() : 0}/yr
-          </p>
+          <div className="mb-2">Numbers: {numbers.length}</div>
+          <div className="mb-2">Calls: {calls.length}</div>
+          <div className="mb-2">Messages: {messages.length}</div>
+          <div className="mb-2">Savings: {savings?.annual || 0}</div>
         </div>
       )}
     </div>
