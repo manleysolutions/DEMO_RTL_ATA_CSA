@@ -1,126 +1,60 @@
-#!/usr/bin/env python3
 import os
 import json
-import random
 import requests
-import tempfile
-import subprocess
-from dotenv import load_dotenv
+from pathlib import Path
 
-# ============================
-# Load environment variables
-# ============================
-load_dotenv()
-ELEVEN_API_KEY = os.getenv("ELEVENLABS_API_KEY")
-ELEVEN_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "EXAVITQu4vr4xnSDxMaL")  # fallback ID
+# Load API key from env var
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 
-# ============================
-# Dialog database
-# ============================
-DIALOG_FILE = os.path.join(os.path.dirname(__file__), "samantha_dialog.json")
+if not ELEVENLABS_API_KEY:
+    raise RuntimeError("ELEVENLABS_API_KEY is not set. Add it to your .env or Render Environment Variables.")
 
-if not os.path.exists(DIALOG_FILE):
-    # Create minimal default dialog if missing
-    default_dialog = {
-        "greetings": {
-            "initial": ["Hello, this is Samantha, your emergency assistant. How can I help you today?"],
-            "commissioning_start": ["Welcome to the Central Station Appliance setup. Let's get started."],
-            "emergency_detection": ["This is Samantha. I detect an emergency. Are you safe?"]
-        },
-        "commissioning": {
-            "network_check": ["Checking networks... Wi-Fi connected. Ethernet stable. Cellular signal good."],
-            "telnyx_sip_setup": ["Configuring Telnyx SIP... Please confirm your credentials."],
-            "success": ["Commissioning complete. CSA is ready for use."],
-            "failure": ["Connection issue detected. Please check cables and retry."]
-        },
-        "emergency_entrapment": {
-            "initial_response": [
-                "This is Samantha. I understand you may be trapped. Stay calm; help is on the way.",
-                "Samantha here. I detect an entrapment signal. Don't panic. Can you tell me your location?"
-            ],
-            "follow_up_questions": [
-                "Are you alone? Is anyone hurt? Please describe the situation.",
-                "What's your name? How many people are with you? Do you have any medical conditions?",
-                "Is the air okay? Can you see any lights or buttons?"
-            ],
-            "reassurance": [
-                "I'm contacting emergency services right now. They will be with you shortly. Breathe slowly.",
-                "Help is dispatched. Stay on the line; I'm here with you. You're not alone.",
-                "Emergency team is en route. Time to arrival is approximately 10 minutes. Hang in there."
-            ],
-            "closure": [
-                "Rescue team has arrived. Thank you for staying calm. Samantha signing off."
-            ]
-        },
-        "farewell": {
-            "end_conversation": ["Thank you for using Samantha. Stay safe. Goodbye."]
-        }
+# Voice settings (Samantha voice you’ve been using)
+VOICE_ID = "21m00Tcm4TlvDq8ikWAM"   # Replace if you have Samantha’s specific ID
+OUTPUT_DIR = Path("/home/csa/csav1-core/audio")
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# Load dialog repository
+DIALOG_PATH = Path("/home/csa/csav1-core/samantha_dialog.json")
+if not DIALOG_PATH.exists():
+    raise FileNotFoundError(f"Missing {DIALOG_PATH}. Please create it first.")
+with open(DIALOG_PATH, "r") as f:
+    DIALOG = json.load(f)
+
+def speak(text, filename="output.mp3"):
+    """Send text to ElevenLabs TTS and play it."""
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{VOICE_ID}"
+    headers = {
+        "Accept": "audio/mpeg",
+        "Content-Type": "application/json",
+        "xi-api-key": ELEVENLABS_API_KEY
     }
-    with open(DIALOG_FILE, "w") as f:
-        json.dump(default_dialog, f, indent=2)
+    data = {
+        "text": text,
+        "voice_settings": {"stability": 0.5, "similarity_boost": 0.8}
+    }
 
-# ============================
-# Voice output
-# ============================
-def speak(text: str):
-    """Speak text using ElevenLabs, fallback to espeak if it fails."""
-    if ELEVEN_API_KEY:
-        try:
-            url = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVEN_VOICE_ID}"
-            headers = {
-                "xi-api-key": ELEVEN_API_KEY,
-                "Content-Type": "application/json"
-            }
-            payload = {"text": text, "voice_settings": {"stability": 0.5, "similarity_boost": 0.8}}
-            r = requests.post(url, headers=headers, json=payload, stream=True, timeout=30)
+    resp = requests.post(url, headers=headers, json=data, timeout=30)
+    if resp.status_code != 200:
+        raise RuntimeError(f"TTS request failed: {resp.status_code} {resp.text}")
 
-            if r.status_code == 200:
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as f:
-                    for chunk in r.iter_content(chunk_size=1024):
-                        if chunk:
-                            f.write(chunk)
-                    tmpfile = f.name
-                subprocess.run(
-                    ["ffplay", "-nodisp", "-autoexit", "-loglevel", "quiet", tmpfile],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL
-                )
-                os.unlink(tmpfile)
-                return
-            else:
-                print("ElevenLabs error:", r.text)
-        except Exception as e:
-            print("ElevenLabs failed, falling back:", e)
+    filepath = OUTPUT_DIR / filename
+    with open(filepath, "wb") as f:
+        f.write(resp.content)
 
-    # Fallback voice (robot)
-    subprocess.run(["espeak", text])
+    os.system(f"mpg123 {filepath}")  # Play back audio
+    return filepath
 
-# ============================
-# Dialog access helpers
-# ============================
-def speak_from(category, key):
-    if not os.path.exists(DIALOG_FILE):
-        print("Dialog file missing!")
-        return
-    with open(DIALOG_FILE, "r") as f:
-        dialog = json.load(f)
-
-    if category in dialog and key in dialog[category]:
-        phrase = random.choice(dialog[category][key])
-        print(f"Samantha says: {phrase}")
-        speak(phrase)
-    else:
-        print("Dialog key not found.")
-
-# ============================
-# CLI demo
-# ============================
-if __name__ == "__main__":
-    print("Samantha v2 is ready. Try categories: greetings, commissioning, emergency_entrapment, farewell")
+def speak_from(category, subcategory):
+    """Speak a random phrase from the dialog repo."""
+    import random
     try:
-        while True:
-            cat = input("Enter category: ").strip()
-            key = input("Enter key: ").strip()
-            speak_from(cat, key)
-    except KeyboardInterrupt:
-        print("\nExiting Samantha.")
+        phrase = random.choice(DIALOG[category][subcategory])
+        print(f"Samantha says: {phrase}")
+        speak(phrase, f"{category}_{subcategory}.mp3")
+    except KeyError:
+        print(f"[ERROR] Missing dialog entry for {category}/{subcategory}")
+
+# Example run
+if __name__ == "__main__":
+    speak_from("greetings", "initial")

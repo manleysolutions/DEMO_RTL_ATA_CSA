@@ -1,0 +1,19 @@
+# Ignore environment and secrets
+.env
+*.env
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# Node artifacts
+node_modules/
+dist/
+public/assets/
+
+# OS junk
+.DS_Store
+Thumbs.db
