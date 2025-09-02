@@ -36,6 +36,18 @@ app.post("/login", (req, res) => {
   }
 });
 
+// Logout route
+app.post("/logout", (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      console.error("Logout error:", err);
+      return res.status(500).json({ ok: false, error: "Logout failed" });
+    }
+    res.clearCookie("connect.sid");
+    res.json({ ok: true, message: "Logged out successfully" });
+  });
+});
+
 // Auth middleware
 function requireAuth(req, res, next) {
   if (req.session.authenticated) {
@@ -44,15 +56,15 @@ function requireAuth(req, res, next) {
   res.status(401).send("Unauthorized");
 }
 
-// Protect API routes (example)
+// Example secure API
 app.get("/api/data", requireAuth, (req, res) => {
   res.json({ message: "Secure data here." });
 });
 
-// Serve frontend (after auth)
+// Serve frontend (protected)
 app.use(requireAuth, express.static(path.join(__dirname, "public")));
 
-// Catch-all → index.html (for React/Vite routing)
+// Catch-all → index.html (for SPA routing)
 app.get("*", requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
