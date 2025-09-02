@@ -1,122 +1,98 @@
 import os
+import json
 import random
 import argparse
+from elevenlabs import generate, play, set_api_key
 
-# Try ElevenLabs SDK
-try:
-    from elevenlabs import generate, play, set_api_key
-    elevenlabs_available = True
-except ImportError:
-    elevenlabs_available = False
+# =====================
+# Load API Key & Voice
+# =====================
+api_key = os.getenv("ELEVENLABS_API_KEY")
+voice_id = os.getenv("ELEVENLABS_VOICE_ID", "dMyQqiVXTU80dDl2eNK8")
 
-# Try pyttsx3
-try:
-    import pyttsx3
-    pyttsx3_available = True
-except ImportError:
-    pyttsx3_available = False
+if not api_key:
+    raise RuntimeError("ELEVENLABS_API_KEY is not set. Run: export ELEVENLABS_API_KEY=...")
 
-# ---------------------------
-# Dialog repository
-# ---------------------------
-DIALOG = {
-    "greetings": {
-        "initial": [
-            "Hello, this is Samantha, your emergency assistant. How can I help you today?"
-        ]
-    },
-    "commissioning": {
-        "start": [
-            "Welcome to the Central Station Appliance setup. Let's get started. What do you need help with?"
-        ],
-        "network_check": [
-            "Checking networks... Wi-Fi connected. Ethernet stable. Cellular signal good. All systems nominal."
-        ],
-        "success": [
-            "Commissioning complete. CSA is ready for use. Test with 'emergency simulation'."
-        ]
-    },
-    "emergency_entrapment": {
-        "initial": [
-            "This is Samantha. I understand you may be trapped. Stay calm; help is on the way. Are you in an elevator?",
-            "Samantha here. I detect an entrapment signal. Don't panic. Can you tell me your location?"
-        ],
-        "follow_up": [
-            "Are you alone? Is anyone hurt? Please describe the situation.",
-            "What's your name? How many people are with you? Do you have any medical conditions?"
-        ],
-        "reassurance": [
-            "Help is dispatched. Stay on the line; I'm here with you. You're not alone.",
-            "Emergency team is en route. Time to arrival is approximately 10 minutes."
-        ],
-        "closure": [
-            "Rescue team has arrived. Thank you for staying calm. Samantha signing off."
-        ]
-    },
-    "farewell": {
-        "end": [
-            "Thank you for using Samantha. Stay safe. Goodbye."
-        ]
-    }
-}
+set_api_key(api_key)
 
-# ---------------------------
-# Voice setup
-# ---------------------------
-ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
-ELEVENLABS_VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "EXAVITQu4vr4xnSDxMaL")
+# =====================
+# Load Samantha Dialog
+# =====================
+dialog_file = os.path.join(os.path.dirname(__file__), "samantha_dialog.json")
 
-if ELEVENLABS_API_KEY and elevenlabs_available:
-    set_api_key(ELEVENLABS_API_KEY)
-    voice_mode = "elevenlabs"
-elif pyttsx3_available:
-    engine = pyttsx3.init()
-    engine.setProperty("rate", 165)
-    voice_mode = "pyttsx3"
-else:
-    voice_mode = "text"
+if not os.path.exists(dialog_file):
+    raise FileNotFoundError(f"Dialog file not found: {dialog_file}")
 
-print(f"[INFO] Samantha voice mode: {voice_mode}")
+with open(dialog_file, "r") as f:
+    dialog = json.load(f)
 
-# ---------------------------
-# Speak function
-# ---------------------------
+# =====================
+# Core Speak Functions
+# =====================
 def speak(text: str):
-    if voice_mode == "elevenlabs":
-        try:
-            audio = generate(text=text, voice=ELEVENLABS_VOICE_ID, model="eleven_multilingual_v2")
-            play(audio)
-        except Exception as e:
-            print(f"[ERROR] ElevenLabs failed: {e}")
-            print(f"[TEXT ONLY] {text}")
-    elif voice_mode == "pyttsx3":
-        engine.say(text)
-        engine.runAndWait()
-    else:
-        print(f"[TEXT ONLY] {text}")
+    """Send text to ElevenLabs TTS and play it."""
+    try:
+        audio = generate(
+            text=text,
+            voice=voice_id,
+            model="eleven_multilingual_v2"
+        )
+        play(audio)
+    except Exception as e:
+        print(f"[ERROR] Failed to speak: {e}")
+        print(f"[FALLBACK] {text}")
 
 def speak_from(category: str, key: str):
-    if category not in DIALOG or key not in DIALOG[category]:
-        speak("Invalid dialog category or key.")
+    """Pick a phrase from Samantha’s dialog repository."""
+    if category not in dialog or key not in dialog[category]:
+        print(f"[WARN] Missing category/key: {category}/{key}")
         return
-    phrase = random.choice(DIALOG[category][key])
+    phrase = random.choice(dialog[category][key])
+    print(f"[Samantha] {phrase}")
     speak(phrase)
 
-# ---------------------------
-# CLI interface
-# ---------------------------
+# =====================
+# CLI Demo Mode
+# =====================
+def demo(category: str):
+    """Demo different flows (commissioning, entrapment, alarms, etc)."""
+    if category == "greetings":
+        speak_from("greetings", "initial")
+
+    elif category == "commissioning":
+        speak_from("commissioning", "network_check")
+        speak_from("commissioning", "telnyx_sip_setup")
+        speak_from("commissioning", "success")
+
+    elif category == "emergency_entrapment":
+        speak_from("emergency_entrapment", "initial_response")
+        speak_from("emergency_entrapment", "follow_up_questions")
+        speak_from("emergency_entrapment", "reassurance")
+        speak_from("emergency_entrapment", "closure")
+
+    elif category == "alarm":
+        speak_from("contact_id_codes", "initial_detection")
+        speak_from("contact_id_codes", "fire_alarm")
+        speak_from("contact_id_codes", "reassurance")
+
+    elif category == "status":
+        speak_from("situational_awareness", "general")
+        speak_from("situational_awareness", "network_issue")
+        speak_from("situational_awareness", "power_loss")
+
+    elif category == "farewell":
+        speak_from("farewell", "end_conversation")
+
+    else:
+        print(f"[WARN] Unknown demo category: {category}")
+
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--demo", type=str, help="Run demo: greetings, commissioning, emergency_entrapment, farewell")
+    parser = argparse.ArgumentParser(description="Samantha AI Voice Assistant v2")
+    parser.add_argument("--demo", type=str, help="Run a demo scenario (greetings, commissioning, emergency_entrapment, alarm, status, farewell)")
     args = parser.parse_args()
 
     if args.demo:
-        cat = args.demo
-        if cat not in DIALOG:
-            print(f"Unknown demo category: {cat}")
-        else:
-            for key, phrases in DIALOG[cat].items():
-                for phrase in phrases:
-                    speak(phrase)
+        demo(args.demo)
     else:
-        print("Samantha v2 ready. Try: --demo greetings | commissioning | emergency_entrapment | farewell")
+        print("Samantha v2 is ready. Try: --demo greetings, --demo commissioning, --demo emergency_entrapment, --demo alarm, --demo status, --demo farewell")
