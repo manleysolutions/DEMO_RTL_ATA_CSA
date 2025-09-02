@@ -2,7 +2,6 @@
 import express from "express";
 import session from "express-session";
 import dotenv from "dotenv";
-import fetch from "node-fetch";
 import path from "path";
 import { fileURLToPath } from "url";
 
