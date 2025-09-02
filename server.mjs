@@ -6,24 +6,25 @@ import { fileURLToPath } from "url";
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const app = express();
-const PORT = process.env.PORT || 4000;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Middleware
-app.use(express.json());
-app.use(session({
-  secret: process.env.SESSION_SECRET || "fallback_secret",
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false }
-}));
+// Sessions
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "fallback_secret",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false },
+  })
+);
 
-// Credentials from environment (fallback to defaults)
+// Auth vars
 const USER = process.env.DASHBOARD_USER || "admin";
 const PASS = process.env.DASHBOARD_PASS || "admin123";
+
+// JSON body parser
+app.use(express.json());
 
 // Login route
 app.post("/login", (req, res) => {
@@ -36,40 +37,21 @@ app.post("/login", (req, res) => {
   }
 });
 
-// Logout route
-app.post("/logout", (req, res) => {
-  req.session.destroy(err => {
-    if (err) {
-      console.error("Logout error:", err);
-      return res.status(500).json({ ok: false, error: "Logout failed" });
-    }
-    res.clearCookie("connect.sid");
-    res.json({ ok: true, message: "Logged out successfully" });
-  });
-});
-
-// Middleware to enforce authentication
+// Middleware to require auth
 function requireAuth(req, res, next) {
-  if (req.session.authenticated) {
-    return next();
-  }
+  if (req.session.authenticated) return next();
   res.status(401).send("Unauthorized");
 }
 
-// Example API (protected)
-app.get("/api/data", requireAuth, (req, res) => {
-  res.json({ message: "Secure data from CSA Dashboard backend" });
+// Protect all API routes under /api
+app.use("/api", requireAuth, (req, res) => {
+  res.json({ status: "ok", message: "You are authenticated" });
 });
 
-// Serve frontend only if authenticated
-app.use(requireAuth, express.static(path.join(__dirname, "public")));
+// Serve frontend (after build)
+app.use(express.static(path.join(__dirname, "public")));
 
-// Catch-all → index.html for SPA routing
-app.get("*", requireAuth, (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-// Start server
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`🚀 CSA Dashboard server running at http://0.0.0.0:${PORT}`);
+  console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
 });
