@@ -21,7 +21,7 @@ app.use(session({
   cookie: { secure: false }
 }));
 
-// Credentials from .env
+// Credentials from environment (fallback to defaults)
 const USER = process.env.DASHBOARD_USER || "admin";
 const PASS = process.env.DASHBOARD_PASS || "admin123";
 
@@ -48,7 +48,7 @@ app.post("/logout", (req, res) => {
   });
 });
 
-// Auth middleware
+// Middleware to enforce authentication
 function requireAuth(req, res, next) {
   if (req.session.authenticated) {
     return next();
@@ -56,20 +56,20 @@ function requireAuth(req, res, next) {
   res.status(401).send("Unauthorized");
 }
 
-// Example secure API
+// Example API (protected)
 app.get("/api/data", requireAuth, (req, res) => {
-  res.json({ message: "Secure data here." });
+  res.json({ message: "Secure data from CSA Dashboard backend" });
 });
 
-// Serve frontend (protected)
+// Serve frontend only if authenticated
 app.use(requireAuth, express.static(path.join(__dirname, "public")));
 
-// Catch-all → index.html (for SPA routing)
+// Catch-all → index.html for SPA routing
 app.get("*", requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
+  console.log(`🚀 CSA Dashboard server running at http://0.0.0.0:${PORT}`);
 });
