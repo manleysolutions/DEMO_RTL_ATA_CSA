@@ -1,4 +1,3 @@
-// server.mjs
 import express from "express";
 import session from "express-session";
 import dotenv from "dotenv";
@@ -13,90 +12,52 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Middleware
 app.use(express.json());
+app.use(session({
+  secret: process.env.SESSION_SECRET || "fallback_secret",
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false }
+}));
 
-// Session (optional)
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "rtl-secret",
-    resave: false,
-    saveUninitialized: true,
-  })
-);
+// Credentials from .env
+const USER = process.env.DASHBOARD_USER || "admin";
+const PASS = process.env.DASHBOARD_PASS || "admin123";
 
-// ---------- HEALTH CHECK ----------
-app.get("/api/health", (req, res) => {
-  res.json({
-    ok: true,
-    service: "Red Tag Lines backend",
-    ts: new Date().toISOString(),
-  });
+// Login route
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+  if (username === USER && password === PASS) {
+    req.session.authenticated = true;
+    res.json({ ok: true });
+  } else {
+    res.status(401).json({ ok: false, error: "Invalid credentials" });
+  }
 });
 
-// ---------- SAVINGS DEMO ----------
-const savings = {
-  monthly: (incumbent = 130, rtl = 40) => incumbent - rtl,
-  annual: (incumbent = 130, rtl = 40) => (incumbent - rtl) * 12,
-};
-
-app.get("/api/savings/:lines", (req, res) => {
-  const lines = parseInt(req.params.lines) || 0;
-  res.json({
-    lines,
-    perLineMonthly: savings.monthly(),
-    perLineAnnual: savings.annual(),
-    totalAnnualSavings: lines * savings.annual(),
-  });
-});
-
-// ---------- CONTACT ID ALARMS DEMO ----------
-const CONTACT_ID_MAP = {
-  "110": "Fire Alarm",
-  "111": "Smoke",
-  "113": "Pull Station",
-  "114": "Duct Detector",
-  "117": "AC Loss",
-  "301": "System Reset",
-  "401": "Burglar Alarm",
-};
-
-function parseContactId(payload = "") {
-  const code = (payload.match(/\b(\d{3})\b/) || [])[1];
-  return {
-    code,
-    description: CONTACT_ID_MAP[code] || "Unknown event",
-    raw: payload,
-  };
+// Auth middleware
+function requireAuth(req, res, next) {
+  if (req.session.authenticated) {
+    return next();
+  }
+  res.status(401).send("Unauthorized");
 }
 
-app.get("/api/alarms/demo", (req, res) => {
-  const demo = [
-    "18Q110 001 001", // Fire
-    "18Q117 001 001", // AC Loss
-    "18Q401 001 001", // Burglar
-  ].map(parseContactId);
-  res.json(demo);
+// Protect API routes (example)
+app.get("/api/data", requireAuth, (req, res) => {
+  res.json({ message: "Secure data here." });
 });
 
-// ---------- STATIC FRONTEND ----------
-const publicDir = path.join(__dirname, "public");
-app.use(express.static(publicDir));
+// Serve frontend (after auth)
+app.use(requireAuth, express.static(path.join(__dirname, "public")));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(publicDir, "index.html"));
+// Catch-all → index.html (for React/Vite routing)
+app.get("*", requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// ---------- STARTUP ----------
-console.log("[INIT] Starting Red Tag Lines backend...");
-
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`[READY] Red Tag Lines backend running at http://0.0.0.0:${PORT}`);
-});
-
-// ---------- ERROR HANDLER ----------
-process.on("uncaughtException", (err) => {
-  console.error("[FATAL] Uncaught Exception:", err);
-});
-process.on("unhandledRejection", (reason) => {
-  console.error("[FATAL] Unhandled Rejection:", reason);
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
 });
