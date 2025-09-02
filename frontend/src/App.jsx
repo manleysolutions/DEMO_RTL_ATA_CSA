@@ -6,51 +6,25 @@ export default function App() {
   const [authenticated, setAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Check session status on load
+  // check if session is still alive
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch("/auth-check");
-        if (res.ok) {
-          setAuthenticated(true);
-        }
-      } catch (err) {
-        console.error("Auth check failed:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkAuth();
+    fetch("/me")
+      .then((res) => (res.ok ? setAuthenticated(true) : setAuthenticated(false)))
+      .catch(() => setAuthenticated(false))
+      .finally(() => setLoading(false));
   }, []);
-
-  const handleLogin = () => {
-    setAuthenticated(true);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await fetch("/logout", { method: "POST" });
-    } catch (err) {
-      console.error("Logout error:", err);
-    }
-    setAuthenticated(false);
-  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <p className="text-gray-700 dark:text-gray-200">Loading...</p>
+      <div className="flex h-screen items-center justify-center">
+        <p className="text-gray-600">Loading...</p>
       </div>
     );
   }
 
-  return (
-    <>
-      {!authenticated ? (
-        <Login onLogin={handleLogin} />
-      ) : (
-        <Dashboard onLogout={handleLogout} />
-      )}
-    </>
-  );
+  if (!authenticated) {
+    return <Login onLogin={() => setAuthenticated(true)} />;
+  }
+
+  return <Dashboard onLogout={() => setAuthenticated(false)} />;
 }
