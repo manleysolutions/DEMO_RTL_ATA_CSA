@@ -1,0 +1,5 @@
+[
+  { "number": "904-567-9026", "type": "Elevator", "status": "active" },
+  { "number": "904-567-9027", "type": "Fire Alarm", "status": "active" },
+  { "number": "904-567-9028", "type": "Fax", "status": "inactive" }
+]

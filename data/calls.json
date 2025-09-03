@@ -1,0 +1,4 @@
+[
+  { "number": "904-567-9026", "direction": "outbound", "timestamp": "2025-09-01T13:05:00Z", "duration": 120 },
+  { "number": "904-567-9027", "direction": "inbound", "timestamp": "2025-09-01T11:45:00Z", "duration": 45 }
+]

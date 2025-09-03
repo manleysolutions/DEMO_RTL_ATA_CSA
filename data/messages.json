@@ -1,0 +1,5 @@
+[
+  { "number": "904-567-9026", "direction": "outbound", "timestamp": "2025-09-01T12:00:00Z", "content": "CSA heartbeat OK" },
+  { "number": "904-567-9027", "direction": "inbound", "timestamp": "2025-09-01T10:30:00Z", "content": "Alarm panel daily test" }
+]
+
