@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "build": "./render-build.sh"
+    "build": "./render-build.sh",
+    "postinstall": "npm install --prefix ./"
   },
   "dependencies": {
     "dotenv": "^16.6.1",
