@@ -18,4 +18,7 @@ rm -rf public
 mkdir -p public
 cp -r frontend/dist/* public/
 
+echo "📦 Installing server deps..."
+npm install --omit=dev
+
 echo "✅ Build complete!"
