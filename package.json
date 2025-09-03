@@ -4,12 +4,14 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "build": "./render-build.sh",
-    "postinstall": "npm install --prefix ./"
+    "build": "./render-build.sh"
   },
   "dependencies": {
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
     "express-session": "^1.18.2"
+  },
+  "engines": {
+    "node": "22.16.0"
   }
 }
