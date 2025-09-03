@@ -5,6 +5,10 @@ BASE_URL = "https://device.pegasus.inseego.com/inseego-connect-api/deviceinfo/ap
 API_KEY = "2ec0edb92df14930affc60fa59fa0a68"
 
 TENANT_OPTIONS = [
+TENANT_OPTIONS = [
+    "manleysolutions",                # new subscription name
+    "manleysolutions.com",            # fallback option
+    "stuart@manleysolutions.com"      # fallback option
     "manleysolutions-com-demo",
     "manleysolutions.com",
     "stuart@manleysolutions.com"
