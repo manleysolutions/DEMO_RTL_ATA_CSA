@@ -1,5 +1,5 @@
 # Core runtime
-flask
+Flask==3.0.3
 requests
 python-dotenv
 

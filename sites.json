@@ -1,0 +1,18 @@
+[
+  {
+    "id": "SITE-001",
+    "e911Location": "123 Main St, Jacksonville, FL",
+    "status": "online",
+    "device": "CSA v1",
+    "fxsLines": ["1709", "9388"],
+    "lastSync": "2025-09-01T10:00:00Z"
+  },
+  {
+    "id": "SITE-002",
+    "e911Location": "310 Greenwich Ave, Greenwich, CT",
+    "status": "offline",
+    "device": "CSA v1",
+    "fxsLines": ["7504"],
+    "lastSync": "2025-08-30T15:30:00Z"
+  }
+]
