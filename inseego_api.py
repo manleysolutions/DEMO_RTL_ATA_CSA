@@ -1,59 +1,58 @@
+#!/usr/bin/env python3
 import requests
-import datetime
+import os
 
-BASE_URL = "https://device.pegasus.inseego.com/inseego-connect-api/deviceinfo/api/v1"
-API_KEY = "2ec0edb92df14930affc60fa59fa0a68"
+# 🔑 Replace these with your actual API client values
+API_KEY = os.getenv("INSEEGO_API_KEY", "YOUR_API_KEY_HERE")
+CLIENT_ID = os.getenv("INSEEGO_CLIENT_ID", "YOUR_CLIENT_ID_HERE")
+CLIENT_SECRET = os.getenv("INSEEGO_CLIENT_SECRET", "YOUR_CLIENT_SECRET_HERE")
 
+# Possible tenant names (cycle through)
 TENANT_OPTIONS = [
-TENANT_OPTIONS = [
-    "manleysolutions",                # new subscription name
-    "manleysolutions.com",            # fallback option
-    "stuart@manleysolutions.com"      # fallback option
-    "manleysolutions-com-demo",
+    "manleysolutions",
     "manleysolutions.com",
-    "stuart@manleysolutions.com"
+    "manleysolutions-com-demo",
+    "stuart@manleysolutions.com",
 ]
 
-APP_NAME = "Inseego Connect"
+# Inseego base URL
+BASE_URL = "https://device.pegasus.inseego.com/inseego-connect-api/deviceinfo/api/v1/get-devices?pageNo=1"
 
-def get_devices(tenant_name, page_no=1, page_size=10):
+def call_inseego_api(tenant):
+    """
+    Make API request for a given tenant
+    """
     headers = {
-        "subscription-Key": API_KEY,
-        "x-tenant-name": tenant_name,
-        "x-application-name": APP_NAME,
-        "Content-Type": "application/json"
+        "Authorization": f"Bearer {API_KEY}",
+        "x-tenant-name": tenant,
+        "Content-Type": "application/json",
     }
-    url = f"{BASE_URL}/get-devices?pageNo={page_no}&pageSize={page_size}"
-    resp = requests.post(url, headers=headers, json={})
-    return resp
 
-def pretty_print_devices(devices):
-    data = devices.get("data", {})
-    device_list = data.get("deviceList", [])
-    print(f"Found {len(device_list)} devices:\n")
-    for d in device_list:
-        imei = d.get("deviceImei", "N/A")
-        model = d.get("deviceModel", "N/A")
-        name = d.get("deviceName", "N/A")
-        status = d.get("deviceCommunicationStatus", "N/A")
-        fw = d.get("deviceFirmware", "N/A")
-        last_comm_epoch = d.get("lastCommunicationTime")
-        if last_comm_epoch:
-            last_comm = datetime.datetime.fromtimestamp(last_comm_epoch / 1000).strftime("%Y-%m-%d %H:%M:%S")
+    try:
+        resp = requests.get(BASE_URL, headers=headers, timeout=10)
+        if resp.status_code == 200:
+            print(f"✅ Success with tenant: {tenant}")
+            print(resp.json())
+            return True
         else:
-            last_comm = "N/A"
-        print(f"📡 Device: {name}\n   IMEI: {imei}\n   Model: {model}\n   Firmware: {fw}\n   Status: {status}\n   Last Seen: {last_comm}\n")
+            print(f"❌ Failed with tenant: {tenant} (HTTP {resp.status_code})")
+            print("Response text:", resp.text.strip())
+            return False
+    except Exception as e:
+        print(f"⚠️ Error calling Inseego API for tenant {tenant}: {e}")
+        return False
+
+
+def main():
+    print("🔎 Trying available tenant names...\n")
+    for tenant in TENANT_OPTIONS:
+        success = call_inseego_api(tenant)
+        if success:
+            break
+    else:
+        print("\n❌ No tenant worked. Double-check API key, client ID/secret, and tenant name.")
+
 
 if __name__ == "__main__":
-    for tenant in TENANT_OPTIONS:
-        print(f"\n🔎 Trying tenant: {tenant}")
-        try:
-            resp = get_devices(tenant)
-            if resp.status_code == 200:
-                print(f"✅ Success with tenant: {tenant}")
-                pretty_print_devices(resp.json())
-                break
-            else:
-                print(f"❌ Failed with tenant: {tenant} (HTTP {resp.status_code})")
-        except Exception as e:
-            print(f"❌ Error with tenant {tenant}:", e)
+    main()
+
