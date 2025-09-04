@@ -2,12 +2,9 @@
 import requests
 import os
 
-# 🔑 Replace these with your actual API client values
-API_KEY = os.getenv("INSEEGO_API_KEY", "YOUR_API_KEY_HERE")
-CLIENT_ID = os.getenv("INSEEGO_CLIENT_ID", "YOUR_CLIENT_ID_HERE")
-CLIENT_SECRET = os.getenv("INSEEGO_CLIENT_SECRET", "YOUR_CLIENT_SECRET_HERE")
+# 🔑 Credentials – set these in your environment or replace inline
+SUBSCRIPTION_KEY = os.getenv("INSEEGO_SUBSCRIPTION_KEY", "YOUR_SUBSCRIPTION_KEY_HERE")
 
-# Possible tenant names (cycle through)
 TENANT_OPTIONS = [
     "manleysolutions",
     "manleysolutions.com",
@@ -15,19 +12,16 @@ TENANT_OPTIONS = [
     "stuart@manleysolutions.com",
 ]
 
-# Inseego base URL
-BASE_URL = "https://device.pegasus.inseego.com/inseego-connect-api/deviceinfo/api/v1/get-devices?pageNo=1"
+# Corrected endpoint (no extra /api, no query until later)
+BASE_URL = "https://device.pegasus.inseego.com/inseego-connect-api/v1/devicelist"
 
 def call_inseego_api(tenant):
-    """
-    Make API request for a given tenant
-    """
     headers = {
-        "Authorization": f"Bearer {API_KEY}",
+        "subscription-Key": SUBSCRIPTION_KEY,
+        "x-application-name": "Inseego Connect",
         "x-tenant-name": tenant,
         "Content-Type": "application/json",
     }
-
     try:
         resp = requests.get(BASE_URL, headers=headers, timeout=10)
         if resp.status_code == 200:
@@ -39,20 +33,16 @@ def call_inseego_api(tenant):
             print("Response text:", resp.text.strip())
             return False
     except Exception as e:
-        print(f"⚠️ Error calling Inseego API for tenant {tenant}: {e}")
+        print(f"⚠️ Error with tenant {tenant}: {e}")
         return False
 
-
 def main():
-    print("🔎 Trying available tenant names...\n")
+    print("🔎 Trying tenants on corrected /v1/devicelist endpoint...\n")
     for tenant in TENANT_OPTIONS:
-        success = call_inseego_api(tenant)
-        if success:
+        if call_inseego_api(tenant):
             break
     else:
-        print("\n❌ No tenant worked. Double-check API key, client ID/secret, and tenant name.")
-
+        print("\n❌ No tenant worked. Check tenant ID in Inseego portal.")
 
 if __name__ == "__main__":
     main()
-
